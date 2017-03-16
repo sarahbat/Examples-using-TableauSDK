@@ -4,8 +4,6 @@
 #
 # Using Psychopg2 library - https://wiki.postgresql.org/wiki/Using_psycopg2_with_PostgreSQL#Perform_a_Select
 #
-# TODO: Streamline process of grabbing field names and type?
-# TODO: Send in query strings to allow more complex queries - possibly still require tuples of (name, type)
 ###
 
 import psycopg2
@@ -15,7 +13,7 @@ from tableausdk.Extract import *
 ###
 # Retrieve table from postgres and convert to TDE
 ###
-def getTableFromPG(host, dbName, userName, pw, selectFields, selectTable):
+def getTableFromPG(host, dbName, userName, pw, selectStatement):
     # Define our connection string
     conn_string = "host='" + host + \
                   "' dbname='" + dbName + \
@@ -23,36 +21,25 @@ def getTableFromPG(host, dbName, userName, pw, selectFields, selectTable):
                   "' password='" + pw + "'"
 
     # print the connection string we will use to connect
-    print "Connecting to database\n	->%s" % (dbName)
+    print("Connecting to database	->{0}").format(dbName)
 
     # get a connection, if a connect cannot be made an exception will be raised here
     conn = psycopg2.connect(conn_string)
 
     # conn.cursor will return a cursor object, you can use this cursor to perform queries
     cursor = conn.cursor()
-    print "Connected!\n"
-
-    selectFieldsTxt = ''
-    for i in range(0, len(selectFields)):
-        selectFieldsTxt += selectFields[i][0] + ', '
-    selectFieldsTxt += selectFields[-1][0]
+    print("Connected!")
 
     # execute our Query
-    selectString = 'SELECT ' + selectFieldsTxt + ' FROM ' + selectTable
-    cursor.execute(selectString)
+    cursor.execute(selectStatement)
 
     # retrieve the records from the database
     records = cursor.fetchall()
 
-    # send the records to a TDE
-    print('There are ' + str(len(records)) +  ' records in the table')
-    print('There are ' + str(len(records[0])) +  ' columns in the table')
+    print("There are {0} records and {1} columns in the table").format(len(records), len(records[0]))
 
     return records
 
-    # pgToTDE(selectFields, records, outputLocation)
-    #
-    # return
 
 ###
 # Convert table from postgres into a TDE
@@ -85,7 +72,7 @@ def writeTableToTDE(pgFields, pgData, extractLocation):
     # 6. Populate each new row
     numberRecords = len(pgData)
     for i in range(0, numberRecords):
-        # print('writing row #' + str(i))
+        # Note that this doesn't cover all possible TDE data types
         for j in range(0, len(pgFields)):
             if pgFields[j][1] == Type.INTEGER:
                 new_row.setInteger(j, pgData[i][j])
@@ -95,10 +82,6 @@ def writeTableToTDE(pgFields, pgData, extractLocation):
                 new_row.setSpatial(j, pgData[i][j])
             elif pgFields[j][i] == Type.BOOLEAN:
                 new_row.setBoolean(j, pgData[i][j])
-            elif pgFields[j][i] == Type.DATE:
-                new_row.setDate(j, pgData[i][j])
-            elif pgFields[j][i] == Type.DATETIME:
-                new_row.setDateTime(j, pgData[j][i])
             elif pgFields[j][i] == Type.DOUBLE:
                 new_row.setDouble(j, pgData[j][i])
         new_table.insert(new_row)  # Add the new row to the table
@@ -113,14 +96,17 @@ def writeTableToTDE(pgFields, pgData, extractLocation):
 
 
 if __name__ == "__main__":
-    # input tuple of field for query and TDE type
-    selectFields = [('gid', Type.INTEGER),
+    selectStatement = "select gid, state, city, name, ST_AsText(geom) " \
+                      "from zillowneighborhoods_seattle4326"
+
+    table = getTableFromPG('localhost', 'redfin', 'postgres', 'postgres', selectStatement)
+
+    outputTDE = "c:\\temp\\extract5.tde"
+
+    tdeFields = [('gid', Type.INTEGER),
                     ('state', Type.UNICODE_STRING),
                     ('city', Type.UNICODE_STRING),
                     ('name', Type.UNICODE_STRING),
-                    ('ST_ASTEXT(geom)', Type.SPATIAL)]
-    selectTable = 'zillowneighborhoods_seattle4326'
-    outputTDE = "c:\\temp\\extract4.tde"
+                    ('geometry', Type.SPATIAL)]
 
-    table = getTableFromPG('localhost', 'redfin', 'postgres', 'postgres', selectFields, selectTable)
-    writeTableToTDE(selectFields, table, outputTDE)
+    writeTableToTDE(tdeFields, table, outputTDE)
