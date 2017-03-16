@@ -45,7 +45,7 @@ def getTableFromPG(host, dbName, userName, pw, selectStatement):
 # Convert table from postgres into a TDE
 ###
 def writeTableToTDE(pgFields, pgData, extractLocation):
-    print('writing table to ' + extractLocation)
+    print("writing table to {0}").format(extractLocation)
 
     # 1. initialize a new extract
     ExtractAPI.initialize()
