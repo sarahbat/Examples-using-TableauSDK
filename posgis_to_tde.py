@@ -3,6 +3,9 @@
 # Read data from Postgres and write to TDE
 #
 # Using Psychopg2 library - https://wiki.postgresql.org/wiki/Using_psycopg2_with_PostgreSQL#Perform_a_Select
+#
+# TODO: Streamline process of grabbing field names and type?
+# TODO: Send in query strings to allow more complex queries - possibly still require tuples of (name, type)
 ###
 
 import psycopg2
