@@ -2,7 +2,8 @@
 # @sarahbat
 # Read data from Postgres and write to TDE
 #
-# Using Psychopg2 library - https://wiki.postgresql.org/wiki/Using_psycopg2_with_PostgreSQL#Perform_a_Select
+# Query example uses a postgresql database, running locally -> 
+#   edit to suit your database location/name/username/password/query/etc.
 #
 ###
 
@@ -96,13 +97,18 @@ def writeTableToTDE(pgFields, pgData, extractLocation):
 
 
 if __name__ == "__main__":
+    # Whatever your query string is...
     selectStatement = "select gid, state, city, name, ST_AsText(geom) " \
                       "from zillowneighborhoods_seattle4326"
 
+    # getTableFromPG(server, database, userName, password, queryString)
     table = getTableFromPG('localhost', 'redfin', 'postgres', 'postgres', selectStatement)
 
-    outputTDE = "c:\\temp\\extract5.tde"
-
+    outputTDE = "c:\\temp\\extract.tde"
+    
+    # Need to know what the fields in returned table will be, and the datatype that matches with the TDE types
+    # Note that this script currently only checks for a limited set of TDE datatypes, so you may need to extend
+    # in the writeTableToTDE function to include date, datetime, etc. if these are important to you
     tdeFields = [('gid', Type.INTEGER),
                     ('state', Type.UNICODE_STRING),
                     ('city', Type.UNICODE_STRING),
