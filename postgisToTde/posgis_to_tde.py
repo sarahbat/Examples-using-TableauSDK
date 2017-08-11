@@ -1,5 +1,5 @@
 ###
-# @sarahbat
+# @sarahbat (Sarah Battersby - sbattersby@tableau.com)
 #
 # Read data from Postgres and write to TDE
 #
@@ -10,7 +10,7 @@
 ###
 
 import psycopg2
-from tableausdk import *
+from tableausdk import Type
 from tableausdk.Extract import *
 
 
