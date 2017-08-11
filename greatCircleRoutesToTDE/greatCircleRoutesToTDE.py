@@ -1,3 +1,11 @@
+###
+# @sarahbat (Sarah Battersby - sbattersby@tableau.com)
+#
+# Read origin-destination lat/lon pairs from a CSV file & calculate great circle arcs
+#
+# Python = 2.7
+###
+
 from tableausdk import Type
 from tableausdk.Extract import *
 from geographiclib.geodesic import Geodesic
